@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/lihepeng/Documents/Github/tmp/ev/cpo/train/cpo.ckpt"
+all_model_checkpoint_paths: "/home/lihepeng/Documents/Github/tmp/ev/cpo/train/cpo.ckpt"
