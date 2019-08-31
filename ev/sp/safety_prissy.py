@@ -17,15 +17,23 @@ TARGET_SOC = 1.0
 seed = 1314
 rnd = np.random.RandomState(seed)
 
-pricefile = '~/Documents/Github/data/RtpData2017.csv'
-df_train = pd.read_csv(pricefile, names=['date','hour','value'])
-df_train['value'] = df_train['value'].astype('float32')
-df_train.index = pd.date_range('2017-01-01-00', '2017-12-31-23', freq='1H')
+pricefile = '~/Documents/Github/tmp/data/price/RtpData2017.csv'
+df_2017 = pd.read_csv(pricefile)
+df_2017['PRICE'] = df_2017['PRICE'].astype('float32')
+df_2017.index = pd.date_range('2017-01-01-00', '2017-12-31-23', freq='1H')
 
-pricefile = '~/Documents/Github/data/RtpData2018.csv'
-df_test = pd.read_csv(pricefile, names=['date','hour','value'])
-df_test['value'] = df_test['value'].astype('float32')
-df_test.index = pd.date_range('2017-12-31-00', '2019-01-01-23', freq='1H')
+pricefile = '~/Documents/Github/tmp/data/price/RtpData2018.csv'
+df_2018 = pd.read_csv(pricefile)
+df_2018['PRICE'] = df_2018['PRICE'].astype('float32')
+df_2018.index = pd.date_range('2018-01-01-00', '2018-12-31-23', freq='1H')
+
+pricefile = '~/Documents/Github/tmp/data/price/RtpData2019.csv'
+df_2019 = pd.read_csv(pricefile)
+df_2019['PRICE'] = df_2019['PRICE'].astype('float32')
+df_2019.index = pd.date_range('2019-01-01-00', '2019-08-31-23', freq='1H')
+
+df_train = df_2017
+df_test = pd.concat([df_2017[-24:], df_2018, df_2019[:24]])
 
 def charge(ep_prices, init_soc):
     p, soc, f = [], [], 0.0
@@ -64,13 +72,13 @@ def plot(ep_prices, soc):
 # choose price data
 price = {"train": df_train, "test": df_test}["test"]
 f_vals = []
-for arr_date in price['date'].unique()[1:-1]:
+for arr_date in price['DATE'].unique()[1:-1]:
     arr_hour = str(int(np.round(np.clip(rnd.normal(18,1),15,21)))).zfill(2)
     dep_hour = str(int(np.round(np.clip(rnd.normal(8,1),6,11)))).zfill(2)
     arr_time = pd.to_datetime(arr_date+' '+arr_hour)
     dep_time = pd.to_datetime(arr_date+' '+dep_hour) + pd.Timedelta(days=1)
 
-    ep_prices = price.loc[arr_time:dep_time-pd.Timedelta(hours=1)]["value"].values
+    ep_prices = price.loc[arr_time:dep_time-pd.Timedelta(hours=1)]["PRICE"].values
     init_soc = np.clip(rnd.normal(0.5, 0.1), 0.2, 0.8)
     f, p, soc = charge(ep_prices, init_soc)
     f_vals.append(f)
