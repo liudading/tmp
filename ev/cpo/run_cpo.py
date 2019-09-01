@@ -35,7 +35,7 @@ def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
 # Train
 seed = None
 train = True
-logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo'
+logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo/train'
 
 env = make_env('EVCharging-v0', seed, train, logger_dir, 10.0)
 total_timesteps = 5e7
@@ -46,8 +46,8 @@ model = learn(
     total_timesteps=total_timesteps,
     **alg_kwargs
 )
-# save_path='/home/lihepeng/Documents/Github/tmp/ev/cpo/train/cpo.ckpt'
-# model.save(save_path)
+save_path='/home/lihepeng/Documents/Github/tmp/ev/cpo/train/cpo.ckpt'
+model.save(save_path)
 
 env.close()
 df_train = load_results(logger_dir)
