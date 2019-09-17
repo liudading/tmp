@@ -19,13 +19,13 @@ from baselines.common import retro_wrappers
 from baselines.common.wrappers import ClipActionsWrapper
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
-penalty = '0.1'
+penalty = 0.6
 
 def make_env(env_id, seed, train=True, logger_dir=None, mpi_rank=0, subrank=0, reward_scale=1.0):
     """
     Create a wrapped, monitored gym.Env for safety.
     """
-    env = gym.make(env_id, **{"train":train})
+    env = gym.make(env_id, **{"train":train, "penalty":penalty})
     env = Monitor(env, 
         logger_dir and os.path.join(logger_dir, str(mpi_rank) + '.' + str(subrank)),
         allow_early_resets=True)
@@ -58,11 +58,11 @@ env = DummyVecEnv([make_thunk(i, seed, train, logger_dir, mpi_rank) for i in ran
 
 model = learn(
     network='mlp',
-    num_hidden=64, 
+    num_hidden=64,
     num_layers=3,
     env=env,
     seed=seed,
-    total_timesteps=500000,
+    total_timesteps=1000000,
     nb_eval_steps=2000,
 )
 
@@ -75,7 +75,7 @@ train = False
 logger.log("Running trained model")
 logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/ddpg/test'
 env = DummyVecEnv([make_thunk(i, seed, train, logger_dir, mpi_rank) for i in range(nenv)])
-dates = env.envs[0].unwrapped._price['date'].unique()[1:-1]
+dates = env.envs[0].unwrapped._price['DATE'].unique()[1:-1]
 
 d = 0
 obs = env.envs[0].unwrapped.reset(**{"arr_date": dates[d]})
@@ -99,5 +99,5 @@ while True:
 print('test returns: {}'.format(np.sum(returns)))
 print('test safeties: {}'.format(np.sum(safeties)))
 
-np.save('/home/lihepeng/Documents/Github/tmp/ev/ddpg/test/returns_{}'.format(penalty), returns)
-np.save('/home/lihepeng/Documents/Github/tmp/ev/ddpg/test/safeties_{}'.format(penalty), safeties)
+np.save('/home/lihepeng/Documents/Github/tmp/ev/ddpg/test/returns_{}'.format(str(penalty)), returns)
+np.save('/home/lihepeng/Documents/Github/tmp/ev/ddpg/test/safeties_{}'.format(str(penalty)), safeties)
