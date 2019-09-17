@@ -83,26 +83,34 @@ model = learn(
     **dr(),
     )
 
+keys = ["Price","SoC","WtTemp","flow","IdTemp","OdTemp",
+        "P_ov","P_dw","P_wm","P_cd",
+        "P_ev","P_wh","P_ac",
+        "P_fg","P_vc","P_hd","P_tv","P_nb","P_lg",
+        "A_ov","A_dw","A_wm","A_cd","A_ev",
+        "B_ov","B_dw","B_wm","B_cd","B_ev",
+]
+import pandas as pd
+import matplotlib.pyplot as plt
+from collections import deque
+values=[deque(maxlen=env.unwrapped.T) for _ in range(len(keys))]
+df_monitor = pd.DataFrame(dict(zip(keys, values)))
+f_vals = []
+for d in range(61):
+    returns = 0.0
+    obs = env.reset(**{"day": d})
+    while True:
+        actions, *_ = model.step(obs)
+        obs, rew, done, info = env.step(actions)
+        returns += info["C_elec"]
+        if done:
+            df_monitor.append(env.unwrapped.monitor)
+            f_vals.append(returns)
 
-"""
-df = env.unwrapped._price
-df["soc"] = 0.0
-df["act"] = 0.0
-
-d = 0
-dates = df['date'].unique()[1:-1]
-obs = env.reset(**{"arr_date": dates[d]})
-df.loc[env.unwrapped._cur_time, "soc"] = env.unwrapped._soc
-while True:
-    actions, *_ = model.step(obs)
-    obs, rew, done, _ = env.step(actions)
-    df.loc[env.unwrapped._cur_time, "act"] = env.unwrapped._act
-    df.loc[env.unwrapped._cur_time, "soc"] = env.unwrapped._soc
-    if done:
-        d += 1
-        if d >= dates.size:
-            break
-        obs = env.reset(**{"arr_date": dates[d]})
-        df.loc[env.unwrapped._cur_time, "soc"] = env.unwrapped._soc
 env.close()
-df.to_csv('/home/lihepeng/Documents/Github/tmp/ev/cpo/test/results.csv')
+df_monitor.to_csv('/home/lihepeng/Documents/Github/tmp/dr/trpo/test/results.csv')
+
+print(np.mean(f_vals))
+plt.plot(f_vals)
+plt.show()
+np.savetxt('/home/lihepeng/Documents/Github/tmp/dr/trpo/test/returns.txt', f_vals)

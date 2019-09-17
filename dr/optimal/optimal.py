@@ -454,5 +454,4 @@ for d in range(1,62):
 print(np.mean(f_vals))
 plt.plot(f_vals)
 plt.show()
-
 np.savetxt('/home/lihepeng/Documents/Github/tmp/dr/optimal/returns.txt', f_vals)

@@ -25,14 +25,14 @@ x = np.linspace(0, 24, 144)
 df_train = df[df["datetime"]>='2016-06-30 00:00:00'][df["datetime"]<='2016-08-31 23:00:00']
 train_days = df_train.shape[0] // 24
 temp24 = df_train[city].values.reshape([train_days, 24])
+temp24[19] = np.mean(temp24[:2], 0)
+temp24[20] = np.mean(temp24[3:5], 0)
 
 temp_train = np.ndarray([train_days, 144])
 for d in range(train_days):
-    for i, temp in enumerate(temp24[d]):
-        temp_train[d,i*6:(i+1)*6] = temp
-
-temp_train[19] = np.mean(temp_train[:15], 0)
-temp_train[20] = np.mean(temp_train[16:31], 0)
+    temp_train[d] = np.interp(x,xp,temp24[d])
+#     for i, temp in enumerate(temp24[d]):
+#         temp_train[d,i*6:(i+1)*6] = temp
 
 plt.figure()
 for d in range(train_days):
@@ -48,13 +48,13 @@ np.savetxt('/home/lihepeng/Documents/Github/tmp/dr/data/temp_train.txt', temp_tr
 df_test = df[df["datetime"]>='2017-06-30 00:00:00'][df["datetime"]<='2017-08-31 23:00:00']
 test_days = df_test.shape[0] // 24
 temp24 = df_test[city].values.reshape([test_days, 24])
+temp24[47][8:11] = np.around(np.mean(temp24[32:61], 0)[8:11], decimals=3)
 
 temp_test = np.ndarray([test_days, 144])
 for d in range(test_days):
-    for i, temp in enumerate(temp24[d]):
-        temp_test[d,i*6:(i+1)*6] = temp
-
-temp_test[47][48:66] = np.around(np.mean(temp_test[32:61], 0)[48:66], decimals=3)
+    temp_test[d] = np.interp(x,xp,temp24[d])
+#     for i, temp in enumerate(temp24[d]):
+#         temp_test[d,i*6:(i+1)*6] = temp
 
 plt.figure()
 for d in range(test_days):

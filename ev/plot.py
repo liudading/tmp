@@ -18,6 +18,12 @@ f_to = np.loadtxt(logger_dir)
 logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/sp/sp_returns.txt'
 f_sp = np.loadtxt(logger_dir)
 
+# MPC
+logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/mpc/mpc_returns.txt'
+f_mpc = np.loadtxt(logger_dir)
+logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/mpc/mpc_safeties.txt'
+s_mpc = np.loadtxt(logger_dir)
+
 # DDPG
 logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/ddpg/test/returns_0.1.npy'
 ddpg_r_01 = np.load(logger_dir)
@@ -130,12 +136,14 @@ ddpg1_r = "{0:.2f}%".format(np.mean((d+ddpg_r_1.sum())/d) * 100)
 dqn01_r = "{0:.2f}%".format(np.mean((d+dqn_r_01.sum())/d) * 100)
 dqn1_r = "{0:.2f}%".format(np.mean((d+dqn_r_1.sum())/d) * 100)
 to_r = "{0:.2f}%".format(np.mean((d-f_to.sum())/d) * 100)
+mpc_r = "{0:.2f}%".format(np.mean((d-f_mpc.sum())/d) * 100)
 
 fig = plt.figure(figsize=(10,7))
 ax = plt.subplot(111)
 plt.plot(np.cumsum(-df_test["r"]), label='CPO', linewidth=3.0, linestyle=linestyle_tuple['densely dashed'])
 plt.plot(np.cumsum(f_sp), label='SP', linewidth=3.0, marker='*', markersize=10, markevery=20)
 plt.plot(np.cumsum(f_to), label='TO', linewidth=3.0, marker='v', markersize=7, markevery=20)
+plt.plot(np.cumsum(f_mpc), label='MPC', color='k', linewidth=3.0, marker='p', markersize=8, markevery=20)
 plt.plot(np.cumsum(-ddpg_r_01), label=r'DDPG, $\varrho=0.1$', linewidth=3.0, linestyle='dashdot')
 plt.plot(np.cumsum(-ddpg_r_1), label=r'DDPG, $\varrho=1.0$', linewidth=3.0, linestyle='dashed', marker='X', markersize=8, markevery=20)
 plt.plot(np.cumsum(-dqn_r_01), label=r'DQN, $\varrho=0.1$', linewidth=3.0, linestyle='dotted')
@@ -149,6 +157,8 @@ ax.text(368, 53, cpo_r, style='italic', fontsize='x-large',
         bbox={'facecolor': '#1f77b4', 'alpha': 0.5, 'pad': 5})
 ax.text(368, 38, to_r, style='italic',  fontsize='x-large',
         bbox={'facecolor': '#2ca02c', 'alpha': 0.5, 'pad': 5})
+ax.text(368, 29, mpc_r, style='italic',  fontsize='x-large',
+        bbox={'facecolor': 'k', 'alpha': 0.5, 'pad': 5})
 ax.text(368, 20, ddpg01_r, style='italic',  fontsize='x-large',
         bbox={'facecolor': '#d62728', 'alpha': 0.5, 'pad': 5})
 ax.text(368, 71, ddpg1_r, style='italic',  fontsize='x-large',
@@ -165,6 +175,7 @@ plt.show()
 
 d = 0.1
 cpo_v = "{0:.2f}%".format(np.mean(np.maximum(0, df_test["s"].values-d)/d) * 100)
+mpc_v = "{0:.2f}%".format(np.mean(np.maximum(0, s_mpc-d)/d) * 100)
 ddpg01_v = "{0:.2f}%".format(np.mean(np.maximum(0, ddpg_s_01-d)/d) * 100)
 ddpg1_v = "{0:.2f}%".format(np.mean(np.maximum(0, ddpg_s_1-d)/d) * 100)
 dqn01_v = "{0:.2f}%".format(np.mean(np.maximum(0, dqn_s_01-d)/d) * 100)
@@ -175,6 +186,7 @@ ax = plt.subplot(111)
 plt.plot(np.cumsum(df_test["s"]), label='CPO', linewidth=3.0, linestyle=linestyle_tuple['densely dashed'])
 plt.plot([0.0]*f_sp.size, linewidth=3.0)
 plt.plot([0.0]*f_to.size, linewidth=3.0)
+plt.plot(np.cumsum(s_mpc), label='MPC', linewidth=3.0, color='k', marker='p', markersize=8, markevery=20)
 plt.plot(np.cumsum(ddpg_s_01), label=r'DDPG, $\varrho=0.1$', linewidth=3.0, linestyle='dashdot')
 plt.plot(np.cumsum(ddpg_s_1), label=r'DDPG, $\varrho=1.0$', linewidth=3.0, linestyle='dashed', marker='X', markersize=8, markevery=20)
 plt.plot(np.cumsum(dqn_s_01), label=r'DQN, $\varrho=0.1$', linewidth=3.0, linestyle='dotted')
@@ -186,6 +198,8 @@ plt.xlabel('Day', fontsize=20)
 plt.ylabel('Cumulative Constraint Values (kWh)', fontsize=20)
 ax.text(370, 100, cpo_v, style='italic', fontsize='x-large',
         bbox={'facecolor': '#1f77b4', 'alpha': 0.5, 'pad': 7})
+ax.text(370, 950, mpc_v, style='italic', fontsize='x-large',
+        bbox={'facecolor': 'k', 'alpha': 0.5, 'pad': 7})
 ax.text(370, 3450, ddpg01_v, style='italic', fontsize='x-large',
         bbox={'facecolor': '#d62728', 'alpha': 0.5, 'pad': 7})
 ax.text(370, 1720, ddpg1_v, style='italic', fontsize='x-large',
@@ -200,6 +214,7 @@ plt.tight_layout(rect=(0,0.03,1,1))
 plt.show(block=True)
 
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -234,8 +249,8 @@ ax1.set_yticklabels(labels=[str(i) for i in range(-6,8,2)], fontdict={'fontsize'
 ax1.set_ylabel('Energy (kWh)', fontsize=20, color='#1f77b4')
 ax1.yaxis.set_label_coords(1.06,0.5)
 ax1.axhline(0.0, linewidth=0.5, color='#1f77b4', label='Limit d=0.1')
-ax1.text(162, 4.9, 'Charging', rotation='vertical', fontsize='xx-large', color='#1f77b4')
-ax1.text(162, -1.5, 'Discharging', rotation='vertical', fontsize='xx-large', color='#1f77b4')
+ax1.text(162, 1.3, 'Charging', rotation='vertical', fontsize='xx-large', color='#1f77b4')
+ax1.text(162, -6.0, 'Discharging', rotation='vertical', fontsize='xx-large', color='#1f77b4')
 ax1.axis([0, df["act"].shape[0], -7, 7])
 boxes = []
 boxes.append(Rectangle((14, -7), 8, 14))
@@ -277,6 +292,84 @@ boxes.append(Rectangle((62, 0), 10, 25))
 boxes.append(Rectangle((86, 0), 11, 25))
 boxes.append(Rectangle((109, 0), 11, 25))
 boxes.append(Rectangle((135, 0), 10, 25))
+pc = PatchCollection(boxes, facecolor='green', alpha=0.3)
+ax.add_collection(pc)
+plt.tight_layout(rect=(0.0069,0,0.94,1))
+plt.show()
+
+
+df = pd.read_csv('/home/lihepeng/Documents/Github/tmp/ev/cpo/test/results.csv', index_col=0)
+df = df.loc[df.index>='2018-12-02 19']
+df = df.loc[df.index<='2018-12-09 09']
+
+fig = plt.figure(figsize=(18,5))
+ax = plt.subplot(111)
+ax.annotate('', xy=(157.8, 0.070), xytext=(166, 0.070), annotation_clip=False,
+            arrowprops=dict(facecolor='black', arrowstyle='-', alpha=1.0))
+ax.annotate('', xy=(157.8, 0.045), xytext=(166, 0.045), annotation_clip=False, 
+            arrowprops=dict(color='#1f77b4', arrowstyle='-', alpha=1.0))
+ax.annotate('', xy=(157.8, 0.02), xytext=(166, 0.02), annotation_clip=False,
+            arrowprops=dict(facecolor='black', arrowstyle='-', alpha=1.0))
+ax.plot(df["value"].values, color='#ff7f0e')
+ax.set_xlim(0, df.shape[0])
+# ax.set_ylim(0.015, 0.025)
+ax.set_xticks(np.arange(0,df.shape[0]+1,20))
+ax.set_xticklabels(labels=[str(i) for i in range(0,df.shape[0]+1,20)], fontdict={'fontsize':'xx-large'})
+ax.set_yticks([0.02,0.03,0.04,0.05,0.06,0.07])
+ax.set_yticklabels(labels=[str(i) for i in [0.02,0.03,0.04,0.05,0.06,0.07]], fontdict={'fontsize':'xx-large'}, color='#ff7f0e')
+ax.set_xlabel('Time (Hour)', fontsize=20)
+ax.set_ylabel('Electricity Price ($/kWh)', fontsize=20, color='#ff7f0e')
+
+ax1 = ax.twinx()
+ax1.bar(range(df["act"].shape[0]), df["act"].values)
+ax1.set_yticks(range(-6,8,2))
+ax1.set_yticklabels(labels=[str(i) for i in range(-6,8,2)], fontdict={'fontsize':'xx-large'}, color='#1f77b4')
+ax1.set_ylabel('Energy (kWh)', fontsize=20, color='#1f77b4')
+ax1.yaxis.set_label_coords(1.06,0.5)
+ax1.axhline(0.0, linewidth=0.5, color='#1f77b4', label='Limit d=0.1')
+ax1.text(162, 1.3, 'Charging', rotation='vertical', fontsize='xx-large', color='#1f77b4')
+ax1.text(162, -6.0, 'Discharging', rotation='vertical', fontsize='xx-large', color='#1f77b4')
+ax1.axis([0, df["act"].shape[0], -7, 7])
+boxes = []
+boxes.append(Rectangle((13, -7), 10, 14))
+boxes.append(Rectangle((39, -7), 9, 14))
+boxes.append(Rectangle((62, -7), 9, 14))
+boxes.append(Rectangle((84, -7), 12, 14))
+boxes.append(Rectangle((111, -7), 8, 14))
+boxes.append(Rectangle((134, -7), 9, 14))
+pc = PatchCollection(boxes, facecolor='green', alpha=0.3)
+ax1.add_collection(pc)
+ax1.annotate('Arrival', xy=(23, 7), xytext=(23, 8.5), annotation_clip=False,
+            arrowprops=dict(facecolor='black', alpha=1.0), fontsize='xx-large')
+ax1.annotate('Departure', xy=(39, 7), xytext=(39, 8.5), annotation_clip=False,
+            arrowprops=dict(facecolor='black', alpha=1.0), fontsize='xx-large')
+# ax1.annotate('', xy=(37, 7), xytext=(37, 8.5), annotation_clip=False,
+#             arrowprops=dict(facecolor='black', alpha=1.0), fontsize='xx-large')
+plt.tight_layout(rect=(0,0,1,1))
+plt.show()
+
+fig = plt.figure(figsize=(18,5))
+ax = plt.subplot(111)
+ax.bar(np.arange(df["act"].shape[0])+0.5,df["soc"].values*24, color='#ff7f0e')
+ax.set_xticks(np.arange(0,df.shape[0]+1,20))
+ax.set_xticklabels(labels=[str(i) for i in range(0,df.shape[0]+1,20)], fontdict={'fontsize':'xx-large'})
+ax.set_xlim(0, df.shape[0])
+ax.set_xlabel('Time (Hour)', fontsize=20)
+ax.set_yticks(range(0,26,4))
+ax.set_yticklabels(labels=[str(i) for i in range(0,26,4)], fontdict={'fontsize':'xx-large'})
+ax.set_ylabel('Battery Energy (kWh)', fontsize=20)
+ax.yaxis.set_label_coords(-0.0405,0.5)
+ax.set_ylim(0, 25)
+ax.axhline(24.0, linewidth=1.5, color='#1f77b4')
+ax.annotate('Charging Target', xy=(32, 24), xytext=(32, 27), annotation_clip=False,
+            arrowprops=dict(facecolor='black', alpha=1.0), fontsize='xx-large')
+boxes = []
+boxes.append(Rectangle((13, 0), 10, 25))
+boxes.append(Rectangle((39, 0), 9, 25))
+boxes.append(Rectangle((62, 0), 9, 25))
+boxes.append(Rectangle((84, 0), 12, 25))
+boxes.append(Rectangle((111, 0), 8, 25))
+boxes.append(Rectangle((134, 0), 9, 25))
 pc = PatchCollection(boxes, facecolor='green', alpha=0.3)
 ax.add_collection(pc)
 plt.tight_layout(rect=(0.0069,0,0.94,1))

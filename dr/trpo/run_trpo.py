@@ -46,7 +46,7 @@ def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0, mpi_ra
         env = RewardScaler(env, reward_scale)
     return env
 
-def make_vec_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0, num_env=1.0):
+def make_vec_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0, num_env=1):
     """
     Create a wrapped, monitored SubprocVecEnv for Atari and MuJoCo.
     """
