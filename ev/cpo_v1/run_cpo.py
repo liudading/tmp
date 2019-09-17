@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(0, '/home/lihepeng/Documents/Github/baselines/baselines')
+sys.path.insert(0, '/home/cisa3/hepeng/Github/baselines/baselines')
 try:
     from mpi4py import MPI
 except ImportError:
@@ -17,6 +17,8 @@ from baselines.bench import Monitor
 from baselines.bench.monitor import load_results
 from baselines.common import retro_wrappers
 from baselines.common.wrappers import ClipActionsWrapper
+
+dir_name = 'cpo_max_kl_is_002'
 
 def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
     """
@@ -35,7 +37,7 @@ def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
 # Train
 seed = None
 train = True
-logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train'
+logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train/{}/'.format(dir_name)
 
 env = make_env('EVCharging-v0', seed, train, logger_dir, 10.0)
 total_timesteps = 5e7
@@ -46,7 +48,7 @@ model = learn(
     total_timesteps=total_timesteps,
     **alg_kwargs
 )
-save_path='/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train/cpo_max_kl_is_002.ckpt'
+save_path='/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train/{}/cpo.ckpt'.format(dir_name)
 model.save(save_path)
 
 env.close()

@@ -20,6 +20,8 @@ from baselines.common import retro_wrappers
 from baselines.common.wrappers import ClipActionsWrapper
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
+dir_name = 'cpo_max_kl_is_002'
+
 def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
     """
     Create a wrapped, monitored gym.Env for safety.
@@ -38,14 +40,14 @@ def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
 seed = 1314
 train = False
 logger.log("Running trained model")
-logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/test'
+logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/test/{}/'.format(dir_name)
 env = make_env('EVCharging-v0', seed, train, logger_dir, 1.0)
 alg_kwargs = ev()
 model = learn(
     env=env,
     seed=seed,
     total_timesteps=0,
-    load_path='/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train/cpo_max_kl_is_002.ckpt',
+    load_path='/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train/{}/cpo.ckpt'.format(dir_name),
     **alg_kwargs
 )
 
@@ -69,4 +71,4 @@ while True:
         obs = env.reset(**{"arr_date": dates[d]})
         df.loc[env.unwrapped._cur_time, "soc"] = env.unwrapped._soc
 env.close()
-df.to_csv('/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/test/results_max_kl_is_002.csv')
+df.to_csv('/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/test/{}/results.csv'.format(dir_name))
