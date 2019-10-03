@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 sys.path.insert(0, '/home/cisa3/hepeng/Github/baselines/baselines')
 try:
     from mpi4py import MPI
@@ -18,7 +19,7 @@ from baselines.bench.monitor import load_results
 from baselines.common import retro_wrappers
 from baselines.common.wrappers import ClipActionsWrapper
 
-dir_name = 'cpo_max_kl_is_002'
+dir_name = 'cpo_d_is_2'
 
 def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
     """
@@ -34,8 +35,9 @@ def make_env(env_id, seed, train=True, logger_dir=None, reward_scale=1.0):
         env = RewardScaler(env, reward_scale)
     return env
 
+t0 = time.time()
 # Train
-seed = None
+seed = 1
 train = True
 logger_dir = '/home/lihepeng/Documents/Github/tmp/ev/cpo_v1/train/{}/'.format(dir_name)
 
@@ -53,3 +55,5 @@ model.save(save_path)
 
 env.close()
 df_train = load_results(logger_dir)
+t1 = time.time()
+print('Total training time is {}'.format(t1-t0))
